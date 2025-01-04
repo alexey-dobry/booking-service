@@ -36,7 +36,7 @@ func NewSQL() (*sql.DB, error) {
 
 	err = db.Ping()
 	if err != nil {
-		log.Fatal("Bad connection: %s", err)
+		log.Fatalf("Bad connection: %s", err)
 	} else {
 		log.Print("Connection is good")
 	}
