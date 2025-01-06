@@ -1,10 +1,12 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type Booking struct {
-	Id        int       `json:"id"`
-	UserId    int       `json:"user_id"`
-	StartTime time.Time `json:"start_time"`
-	EndTime   time.Time `json:"end_time"`
+	Id        int       `json:"id" validate:"required"`
+	UserId    int       `json:"user_id" validate:"required"`
+	StartTime time.Time `json:"start_time" validate:"required"`
+	EndTime   time.Time `json:"end_time" validate:"required"`
 }

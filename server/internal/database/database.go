@@ -1,24 +1,27 @@
 package database
 
 import (
-	"database/sql"
+	"context"
 	"log"
 	"time"
 
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx"
 )
 
-func NewSQL() (*sql.DB, error) {
-	dsn := ""
-
-	var db *sql.DB
+func NewSQL() (*pgx.Conn, error) {
+	var db *pgx.Conn
 	var err error
+
+	dsn, err := pgx.ParseConnectionString("")
+	if err != nil {
+		log.Fatal("Error parsing dsn")
+	}
 
 	maxRetries := 10
 	delay := 3 * time.Second
 
 	for i := range maxRetries {
-		db, err = sql.Open("postgres", dsn)
+		db, err = pgx.Connect(dsn)
 		if err == nil {
 			break
 		}
@@ -34,7 +37,7 @@ func NewSQL() (*sql.DB, error) {
 		log.Print("Successfully connected")
 	}
 
-	err = db.Ping()
+	err = db.Ping(context.Background())
 	if err != nil {
 		log.Fatalf("Bad connection: %s", err)
 	} else {
