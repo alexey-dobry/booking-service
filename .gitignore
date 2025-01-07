@@ -4,3 +4,5 @@
 
 *.toml
 !*toml.example
+
+*.sql
