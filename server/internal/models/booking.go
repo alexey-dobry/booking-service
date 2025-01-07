@@ -2,6 +2,8 @@ package models
 
 import (
 	"time"
+
+	_ "github.com/alexey-dobry/booking-service/server/internal/validator"
 )
 
 type Booking struct {
