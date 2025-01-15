@@ -13,7 +13,7 @@ type Logger struct {
 	logDirPath string
 }
 
-func newLogger() *Logger {
+func NewLogger() *Logger {
 	var logger Logger
 	logger.ozzo = oz.NewLogger()
 	logger.logDirPath = "../../logs"

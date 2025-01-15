@@ -5,8 +5,9 @@ go 1.23.4
 require (
 	github.com/go-ozzo/ozzo-log v0.0.0-20160703175702-610cdd147d9a
 	github.com/go-playground/validator v9.31.0+incompatible
-	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/gorilla/mux v1.8.1
+	github.com/jackc/pgx v3.6.2+incompatible
+	golang.org/x/crypto/bcrypt v0.32.0
 )
 
 require (
@@ -19,7 +20,7 @@ require (
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
-	golang.org/x/crypto v0.31.0 // indirect
+	golang.org/x/crypto v0.32.0 //inderect
 	golang.org/x/text v0.21.0 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 )
