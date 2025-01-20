@@ -6,7 +6,7 @@ import (
 
 	"github.com/alexey-dobry/booking-service/server/internal/logger"
 	"github.com/gorilla/mux"
-	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/v5"
 )
 
 type Server struct {
@@ -29,5 +29,6 @@ func New(database *pgx.Conn, logger *logger.Logger) *Server {
 }
 
 func (s *Server) Run() {
+	s.logger.Debug("Server is started")
 	log.Fatal(http.ListenAndServe(":8000", s.router))
 }

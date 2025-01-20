@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -23,7 +24,7 @@ func (s *Server) handleAddUser() http.HandlerFunc {
 
 		query := "INSERT INTO users (id,username,password,created_at,updated_at) VALUES (?,?,?,?,?)"
 
-		_, err := s.database.Exec(query, newUser.Id, newUser.Username, newUser.Password, newUser.CreatedAt, newUser.UpdatedAt)
+		_, err := s.database.Exec(context.Background(), query, newUser.Id, newUser.Username, newUser.Password, newUser.CreatedAt, newUser.UpdatedAt)
 		if err != nil {
 			http.Error(w, "Failed to add data to database", http.StatusInternalServerError)
 			s.logger.Error("Failed to add data to database")
@@ -41,7 +42,7 @@ func (s *Server) handleDeleteUser() http.HandlerFunc {
 		id := mux.Vars(r)["id"]
 
 		query := fmt.Sprintf("DELETE FROM users WHERE id=%s", id)
-		_, err := s.database.Exec(query)
+		_, err := s.database.Exec(context.Background(), query)
 		if err != nil {
 			http.Error(w, "Failed to delete specified user", http.StatusBadRequest)
 			s.logger.Error("Failed to delete specified user")
@@ -66,7 +67,7 @@ func (s *Server) handleAddBooking() http.HandlerFunc {
 
 		query := "INSERT INTO bookings (id,user_id,start_time,end_time) VALUES (?,?,?,?)"
 
-		_, err := s.database.Exec(query, newBooking.Id, newBooking.UserId, newBooking.StartTime, newBooking.EndTime)
+		_, err := s.database.Exec(context.Background(), query, newBooking.Id, newBooking.UserId, newBooking.StartTime, newBooking.EndTime)
 		if err != nil {
 			http.Error(w, "Failed to add data to database", http.StatusInternalServerError)
 			s.logger.Error("Failed to add data to database")
@@ -84,7 +85,7 @@ func (s *Server) handleDeleteBooking() http.HandlerFunc {
 		id := mux.Vars(r)["id"]
 
 		query := fmt.Sprintf("DELETE FROM bookings WHERE id=%s", id)
-		_, err := s.database.Exec(query)
+		_, err := s.database.Exec(context.Background(), query)
 		if err != nil {
 			http.Error(w, "Failed to delete specified booking", http.StatusBadRequest)
 			s.logger.Error("Failed to delete specified booking")
@@ -102,7 +103,7 @@ func (s *Server) handleGetBookings() http.HandlerFunc {
 		var bookingList []models.Booking
 
 		query := "SELECT * FROM bookings"
-		data, err := s.database.Query(query)
+		data, err := s.database.Query(context.Background(), query)
 		if err != nil {
 			http.Error(w, "Failed to retrieve data from database", http.StatusInternalServerError)
 			s.logger.Error(fmt.Sprintf("Failed to retrieve data from database; additional info: %s", err))

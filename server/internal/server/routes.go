@@ -11,5 +11,5 @@ func (s *Server) initRoutes() {
 	s.router.HandleFunc("/api/booking/{id}", s.handleDeleteBooking()).Methods("DELTE")
 	s.router.HandleFunc("/api/bookings", s.handleGetBookings()).Methods("GET")
 
-	s.logger.Error("Server routes was initialized")
+	s.logger.Debug("Server routes was initialized")
 }

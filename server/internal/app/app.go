@@ -5,7 +5,7 @@ import (
 
 	"github.com/alexey-dobry/booking-service/server/internal/logger"
 	"github.com/alexey-dobry/booking-service/server/internal/server"
-	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/v5"
 )
 
 type App struct {

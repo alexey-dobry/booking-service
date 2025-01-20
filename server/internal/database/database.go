@@ -5,34 +5,30 @@ import (
 	"log"
 	"time"
 
-	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/v5"
 )
 
 func NewSQL() (*pgx.Conn, error) {
 	var db *pgx.Conn
 	var err error
 
-	dsn, err := pgx.ParseConnectionString("")
-	if err != nil {
-		log.Fatal("Error parsing dsn")
-	}
+	connString := "postgres://alexnh:superpass1029@localhost:3308/service"
 
 	maxRetries := 10
 	delay := 3 * time.Second
 
 	for i := range maxRetries {
-		db, err = pgx.Connect(dsn)
+		db, err = pgx.Connect(context.Background(), connString)
 		if err == nil {
 			break
 		}
 
 		log.Printf("Database connection retry: %d of %d", i+1, maxRetries)
-
 		time.Sleep(delay)
 	}
 
 	if err != nil {
-		log.Fatal("Unable to connect")
+		log.Fatalf("Unable to connect; additional info: %s", err)
 	} else {
 		log.Print("Successfully connected")
 	}

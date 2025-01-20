@@ -1,0 +1,22 @@
+services:
+  database:
+    image: postgres:latest
+    container_name: database
+    ports:
+      - "${DATABASE_PORT}:5432"
+    networks:
+      - app-network
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=md5
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - database:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d/:ro
+
+networks:
+  app-network:
+
+volumes:
+  database:

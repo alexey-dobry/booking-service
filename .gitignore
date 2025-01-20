@@ -1,8 +1,11 @@
 .vscode
 
 .env
+!.env.example
 
 *.toml
 !*toml.example
 
 *.sql
+
+server.log

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	"github.com/alexey-dobry/booking-service/server/internal/app"
@@ -13,7 +14,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to create database connection")
 	}
-	defer db.Close()
+	defer db.Close(context.Background())
 
 	logger := logger.NewLogger()
 
