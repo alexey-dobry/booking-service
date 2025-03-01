@@ -13,6 +13,13 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - database:/var/lib/postgresql/data
+      
+  server:
+    image: server:latest
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
 
 networks:
   app-network:
