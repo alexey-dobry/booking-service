@@ -7,7 +7,7 @@
  You can install Docker <a href="https://docs.docker.com/engine/install/">there</a>
 
 #### Without Docker:
- ![golang](https://badgen.net/static/go/1.13/green?icon=github) ![postgresql](https://badgen.net/static/postgresql/@latest/)<br/>
+ ![golang](https://badgen.net/static/go/1.23/green?icon=github) ![postgresql](https://badgen.net/static/postgresql/@latest/)<br/>
  You can install Golang <a href="https://go.dev/doc/install">there</a><br/>
  You can install PostgreSQL <a href="https://www.postgresql.org/download/">there</a>
 
@@ -46,8 +46,8 @@
   "id": 906,
   "username": "Andrew Tate",
   "password": "$2a$14$kv/sGmTWIlNYocbZqd88GuRsrOtKrs9bBFMM7N7HRNZ.qPxF.b.GG", //bcrypt hash
-  "created_at": "2023-09-24 17:13:42",
-  "updated_at": "2023-09-27 11:10:23"
+  "created_at": "2025-01-15 17:13:42",
+  "updated_at": "2025-03-01 11:10:23"
 }
 ```
  - **Booking (example)**:
@@ -57,7 +57,7 @@
   "user_id": 906,
   "end_time": "2025-03-01 14:00:00",
   "start_time": "2025-03-01 20:42:00",
-  "comment": "GOOOOOOOOLang"
+  "comment": "Row6Table3"
 }
 ```
 
