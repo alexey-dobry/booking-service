@@ -5,14 +5,32 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
+
+	"reflect"
 
 	"github.com/alexey-dobry/booking-service/server/internal/models"
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// User handler functions
+// handleAddUser
+//
+// @Summary Add new user to database
+// @Description Creates functon which adds new user data to database
+// @Accept json
+//
+// @Param Username formData string true "6 <= length <= 20"
+// @Param password formData string true "length = 14"
+// @Param CreatedAt formData string true "format = YYYY-MM-DD HH:MM:SS"
+// @Param UpdatedAt formData string true "format = YYYY-MM-DD HH:MM:SS"
+//
+// @Success 200 {object} integer "ok"
+// @Failure 400 {object} integer "Wrong ID"
+// @Failure 500 {object} integer "Error scanning data from db response"
+// @Router /user [post]
 func (s *Server) handleAddUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -20,22 +38,24 @@ func (s *Server) handleAddUser() http.HandlerFunc {
 		var newUser models.User
 
 		if err := json.NewDecoder(r.Body).Decode(&newUser); err != nil {
-			http.Error(w, "Failed to decode json", http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("Failed to decode json: %s", err), http.StatusBadRequest)
 			s.logger.Error("Failed to decode json")
+			return
 		}
 
 		password, _ := bcrypt.GenerateFromPassword([]byte(newUser.Password), 14)
 
-		query := "INSERT INTO users (id,username,password,created_at,updated_at) VALUES (?,?,?,?,?)"
+		query := "INSERT INTO users (username,password,created_at,updated_at) VALUES ($1,$2,$3,$4)"
 
-		time := time.Now().Format("2006-01-02 15:04:05")
+		time := time.Now()
 		newUser.CreatedAt = time
 		newUser.UpdatedAt = time
 
-		_, err := s.database.Exec(context.Background(), query, newUser.Id, newUser.Username, password, newUser.CreatedAt, newUser.UpdatedAt)
+		_, err := s.database.Exec(context.Background(), query, newUser.Username, password, newUser.CreatedAt, newUser.UpdatedAt)
 		if err != nil {
-			http.Error(w, "Failed to add data to database", http.StatusInternalServerError)
-			s.logger.Error("Failed to add data to database")
+			http.Error(w, fmt.Sprintf("Failed to add data to database; additional info: %s", err), http.StatusInternalServerError)
+			s.logger.Error(fmt.Sprintf("Failed to add data to database; additional info: %s", err))
+			return
 		}
 
 		w.WriteHeader(http.StatusOK)
@@ -43,55 +63,102 @@ func (s *Server) handleAddUser() http.HandlerFunc {
 	}
 }
 
+// handleGetUser
+//
+// @Summary Get user data
+// @Description Creates function which retrieves data of user specified by id from database
+// @Produces json
+//
+// @Param id path int true "User ID "
+//
+// @Success 200 {object} models.User
+// @Failure 400 {object} integer "Wrong ID"
+// @Failure 500 {object} integer "Error scanning data from db response"
+// @Router /user/{id} [get]
 func (s *Server) handleGetUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
-		id := mux.Vars(r)["id"]
+		id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
 		var User models.User
 
-		query := fmt.Sprintf("SELECT * FROM users WHERE id=%s", id)
+		query := "SELECT id, username, password, created_at, updated_at FROM users WHERE id=$1;"
 
-		data, err := s.database.Query(context.Background(), query)
-		if err != nil {
-			http.Error(w, "Failed to retrieve data from database", http.StatusInternalServerError)
+		data, err := s.database.Query(context.Background(), query, id)
+		if !data.Next() {
+			http.Error(w, "Entry is not found", http.StatusBadRequest)
+			s.logger.Error("Entry is not found")
+			return
+		} else if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to retrieve data from database; additional info: %s", err), http.StatusBadRequest)
 			s.logger.Error(fmt.Sprintf("Failed to retrieve data from database; additional info: %s", err))
+			return
 		}
 
 		err = data.Scan(&User.Id, &User.Username, &User.Password, &User.CreatedAt, &User.UpdatedAt)
 		if err != nil {
-			http.Error(w, "Internal error", http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Failed to write data into object; additional info: %s", err), http.StatusInternalServerError)
 			s.logger.Error(fmt.Sprintf("Failed to write data into object; additional info: %s", err))
+			return
 		}
 
 		json.NewEncoder(w).Encode(User)
-		s.logger.Debug("Successfully got user data")
+		s.logger.Debug("Successfully retrieved user data")
 	}
 }
 
+// handleUpdateUser
+//
+// @Summary Update user data
+// @Description Creates function which updates data of user specified by id in database
+// @Accept json
+//
+// @Param id path int true "User ID"
+//
+// @Success 200 {object} integer "ok"
+// @Failure 400 {object} integer "Wrong ID"
+// @Failure 500 {object} integer "Error scanning data from db response"
+// @Router /user/{id} [put]
 func (s *Server) handleUpdateUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
+		id, _ := strconv.Atoi(mux.Vars(r)["id"])
+
 		var newUserData models.User
 
 		if err := json.NewDecoder(r.Body).Decode(&newUserData); err != nil {
-			http.Error(w, "Failed to decode json", http.StatusBadRequest)
-			s.logger.Error("Failed to decode json")
+			http.Error(w, fmt.Sprintf("Failed to decode json; additional info: %s", err), http.StatusBadRequest)
+			s.logger.Error(fmt.Sprintf("Failed to decode json; additional info: %s", err))
+			return
 		}
 
 		password, _ := bcrypt.GenerateFromPassword([]byte(newUserData.Password), 14)
 
-		time := time.Now().Format("2006-01-02 15:04:05")
+		time := time.Now()
 		newUserData.UpdatedAt = time
 
-		query := fmt.Sprintf("UPDATE cars SET username=%s, password=%s,updated_at='%s' WHERE id=%d", newUserData.Username, password, newUserData.UpdatedAt, newUserData.Id)
+		var builder strings.Builder
 
-		_, err := s.database.Exec(context.Background(), query)
+		if newUserData.Password != "" {
+			builder.WriteString("password='")
+			builder.WriteString(string(password))
+			builder.WriteString("',")
+		}
+		if newUserData.Username != "" {
+			builder.WriteString("username=")
+			builder.WriteString(newUserData.Username)
+			builder.WriteString(",")
+		}
+
+		query := fmt.Sprintf("UPDATE users SET %s updated_at=$1 WHERE id=$2", builder.String())
+
+		_, err := s.database.Exec(context.Background(), query, newUserData.UpdatedAt, id)
 		if err != nil {
-			http.Error(w, "Failed to add data to database", http.StatusInternalServerError)
-			s.logger.Error("Failed to add data to database")
+			http.Error(w, fmt.Sprintf("Failed to add data to database; additional info: %s; querystr: %s", err, query), http.StatusInternalServerError)
+			s.logger.Error(fmt.Sprintf("Failed to add data to database; additional info: %s", err))
+			return
 		}
 
 		w.WriteHeader(http.StatusOK)
@@ -99,17 +166,28 @@ func (s *Server) handleUpdateUser() http.HandlerFunc {
 	}
 }
 
+// handleDeleteUser
+//
+// @Summary Delete specified user data
+// @Description Creates function which deletes data of user specified by id from database
+//
+// @Param id path int true "User ID"
+//
+// @Success 200 {object} integer "ok"
+// @Failure 400 {object} integer "Wrong Id"
+// @Router /user/{id} [delete]
 func (s *Server) handleDeleteUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
 		id := mux.Vars(r)["id"]
 
-		query := fmt.Sprintf("DELETE FROM users WHERE id=%s", id)
-		_, err := s.database.Exec(context.Background(), query)
+		query := "DELETE FROM users WHERE id=$1"
+		_, err := s.database.Exec(context.Background(), query, id)
 		if err != nil {
-			http.Error(w, "Failed to delete specified user", http.StatusBadRequest)
-			s.logger.Error("Failed to delete specified user")
+			http.Error(w, fmt.Sprintf("Failed to delete specified user; additional info: %s", err), http.StatusBadRequest)
+			s.logger.Error(fmt.Sprintf("Failed to delete specified user; additional info: %s", err))
+			return
 		}
 
 		w.WriteHeader(http.StatusOK)
@@ -117,7 +195,20 @@ func (s *Server) handleDeleteUser() http.HandlerFunc {
 	}
 }
 
-// Booking handler functions
+// handleAddBooking
+//
+// @Summary Adds new booking entry
+// @Description Creates function which adds new user data to database
+// @Accept json
+//
+// @Param UserId formData int true "integer >= 1"
+// @Param StartTime formData string true "format = YYYY-MM-DD HH:MM:SS"
+// @Param EndTime formData string true "format = YYYY-MM-DD HH:MM:SS"
+//
+// @Success 200 {object} integer "ok"
+// @Failure 400 {object} integer "Wrong ID"
+// @Failure 500 {object} integer "Error scanning data from db response"
+// @Router /booking [post]
 func (s *Server) handleAddBooking() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -125,16 +216,18 @@ func (s *Server) handleAddBooking() http.HandlerFunc {
 		var newBooking models.Booking
 
 		if err := json.NewDecoder(r.Body).Decode(&newBooking); err != nil {
-			http.Error(w, "Failed to decode json", http.StatusBadRequest)
-			s.logger.Error("Failed to decode json")
+			http.Error(w, fmt.Sprintf("Failed to decode json; additional info: %s", err), http.StatusBadRequest)
+			s.logger.Error(fmt.Sprintf("Failed to decode json; additional info: %s", err))
+			return
 		}
 
-		query := "INSERT INTO bookings (id,user_id,start_time,end_time) VALUES (?,?,?,?)"
+		query := "INSERT INTO bookings (user_id,start_time,end_time,text) VALUES ($1,$2,$3,$4)"
 
-		_, err := s.database.Exec(context.Background(), query, newBooking.Id, newBooking.UserId, newBooking.StartTime, newBooking.EndTime)
+		_, err := s.database.Exec(context.Background(), query, newBooking.UserId, newBooking.StartTime, newBooking.EndTime, newBooking.Text)
 		if err != nil {
-			http.Error(w, "Failed to add data to database", http.StatusInternalServerError)
-			s.logger.Error("Failed to add data to database")
+			http.Error(w, fmt.Sprintf("Failed to add data to database; additional info: %s", err), http.StatusInternalServerError)
+			s.logger.Error(fmt.Sprintf("Failed to add data to database; additional info: %s", err))
+			return
 		}
 
 		w.WriteHeader(http.StatusCreated)
@@ -142,33 +235,60 @@ func (s *Server) handleAddBooking() http.HandlerFunc {
 	}
 }
 
+// handleGetBooking
+//
+// @Summary Get booking data
+// @Description Creates function which retrieves data of booking specified by id from database
+// @Produces json
+//
+// @Param id path int true "Booking ID"
+//
+// @Success 200 {object} models.Booking "ok"
+// @Failure 500 {object} integer "Error scanning data from db response"
+// @Router /booking/{id} [get]
 func (s *Server) handleGetBooking() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
-		id := mux.Vars(r)["id"]
+		id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
 		var Booking models.Booking
 
-		query := fmt.Sprintf("SELECT * FROM bookings WHERE id=%s", id)
+		query := "SELECT * FROM bookings WHERE id=$1"
 
-		data, err := s.database.Query(context.Background(), query)
-		if err != nil {
-			http.Error(w, "Failed to retrieve data from database", http.StatusInternalServerError)
+		data, err := s.database.Query(context.Background(), query, id)
+
+		if !data.Next() {
+			http.Error(w, "Entry is not found", http.StatusBadRequest)
+			s.logger.Error("Entry is not found")
+			return
+		} else if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to retrieve data from database; additional info: %s", err), http.StatusInternalServerError)
 			s.logger.Error(fmt.Sprintf("Failed to retrieve data from database; additional info: %s", err))
+			return
 		}
 
-		err = data.Scan(&Booking.Id, &Booking.UserId, &Booking.StartTime, &Booking.EndTime)
+		err = data.Scan(&Booking.Id, &Booking.UserId, &Booking.StartTime, &Booking.EndTime, &Booking.Text)
 		if err != nil {
-			http.Error(w, "Internal error", http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Failed to write data into object; additional info: %s", err), http.StatusInternalServerError)
 			s.logger.Error(fmt.Sprintf("Failed to write data into object; additional info: %s", err))
+			return
 		}
 
 		json.NewEncoder(w).Encode(Booking)
-		s.logger.Debug("Successfully got booking data")
+		s.logger.Debug("Successfully retrieved booking data")
 	}
 }
 
+// handleGetBookings
+//
+// @Summary Get booking data
+// @Description Creates function which retrieves data of all bookings from database
+// @Produces json
+//
+// @Success 200 {array} models.Booking "ok"
+// @Failure 500 {object} integer "Error scanning data from db response"
+// @Router /bookings [get]
 func (s *Server) handleGetBookings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -178,42 +298,75 @@ func (s *Server) handleGetBookings() http.HandlerFunc {
 		query := "SELECT * FROM bookings"
 		data, err := s.database.Query(context.Background(), query)
 		if err != nil {
-			http.Error(w, "Failed to retrieve data from database", http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Failed to retrieve data from database; additional info: %s", err), http.StatusInternalServerError)
 			s.logger.Error(fmt.Sprintf("Failed to retrieve data from database; additional info: %s", err))
+			return
 		}
 
 		for data.Next() {
-			var booking models.Booking
-			if err := data.Scan(&booking.Id, &booking.UserId, &booking.StartTime, &booking.EndTime); err != nil {
-				http.Error(w, "Failed to parse data", http.StatusInternalServerError)
-				s.logger.Error(fmt.Sprintf("Failed to parse data; additional info: %s", err))
+			var Booking models.Booking
+			err = data.Scan(&Booking.Id, &Booking.UserId, &Booking.StartTime, &Booking.EndTime, &Booking.Text)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Failed to write data into object; additional info: %s", err), http.StatusInternalServerError)
+				s.logger.Error(fmt.Sprintf("Failed to write data into object; additional info: %s", err))
+				return
 			}
-			bookingList = append(bookingList, booking)
+			bookingList = append(bookingList, Booking)
 		}
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(bookingList)
-		s.logger.Debug("Successfully got bookings data")
+		s.logger.Debug("Successfully retrieved bookings data")
 	}
 }
 
+// handleUpdateBooking
+//
+// @Summary Updates booking data
+// @Description Creates function which updates data of booking specified by id in database
+// @Accept json
+//
+// @Param id path int true "Booking ID"
+//
+// @Success 200 {object} integer "ok"
+// @Failure 400 {object} integer "Wrong Id"
+// @Failure 500 {object} integer "Error scanning data from db response"
+// @Router /booking/{id} [put]
 func (s *Server) handleUpdateBooking() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
+		id, _ := strconv.Atoi(mux.Vars(r)["id"])
+
 		var newBookingData models.Booking
 
 		if err := json.NewDecoder(r.Body).Decode(&newBookingData); err != nil {
-			http.Error(w, "Failed to decode json", http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("Failed to decode json; additional info: %s", err), http.StatusBadRequest)
 			s.logger.Error(fmt.Sprintf("Failed to decode json; additional info: %s", err))
+			return
 		}
 
-		query := fmt.Sprintf("UPDATE bookings SET start_time='%s' end_time='%s' WHERE id=%d", newBookingData.StartTime, newBookingData.EndTime, newBookingData.Id)
+		v := reflect.ValueOf(newBookingData)
+		t := reflect.TypeOf(newBookingData)
 
-		_, err := s.database.Exec(context.Background(), query)
+		var builder strings.Builder
+
+		for i := 0; i < v.NumField(); i++ {
+			if v.Field(i).Interface() != "" && v.Field(i).Interface() != 0 && fmt.Sprint(v.Field(i).Interface()) != "0001-01-01 00:00:00 +0000 UTC" {
+				builder.WriteString(t.Field(i).Tag.Get("json"))
+				builder.WriteString("='")
+				builder.WriteString(fmt.Sprint(v.Field(i).Interface()))
+				builder.WriteString("',")
+			}
+		}
+
+		query := fmt.Sprintf("UPDATE bookings SET %s WHERE id=$1", builder.String()[:len(builder.String())-1])
+
+		_, err := s.database.Exec(context.Background(), query, id)
 		if err != nil {
-			http.Error(w, "Failed to execute sql command", http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Failed to execute sql command; additional info:%s; querystr: %s", err, query), http.StatusInternalServerError)
 			s.logger.Error(fmt.Sprintf("Failed to execute sql command; additional info:%s", err))
+			return
 		}
 
 		w.WriteHeader(http.StatusOK)
@@ -221,17 +374,28 @@ func (s *Server) handleUpdateBooking() http.HandlerFunc {
 	}
 }
 
+// handleDeleteBooking
+//
+// @Summary Delete specified booking data
+// @Description Creates function which deletes data of booking specified by id from database
+//
+// @Param id path int true "Booking ID"
+//
+// @Success 200 {object} integer "ok"
+// @Failure 400 {object} integer "Wrong Id"
+// @Router /booking/{id} [delete]
 func (s *Server) handleDeleteBooking() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
 		id := mux.Vars(r)["id"]
 
-		query := fmt.Sprintf("DELETE FROM bookings WHERE id=%s", id)
-		_, err := s.database.Exec(context.Background(), query)
+		query := "DELETE FROM bookings WHERE id=$1"
+		_, err := s.database.Exec(context.Background(), query, id)
 		if err != nil {
-			http.Error(w, "Failed to delete specified booking", http.StatusBadRequest)
-			s.logger.Error("Failed to delete specified booking")
+			http.Error(w, fmt.Sprintf("Failed to delete specified booking; additional info: %s", err), http.StatusBadRequest)
+			s.logger.Error(fmt.Sprintf("Failed to delete specified booking; additional info: %s", err))
+			return
 		}
 
 		w.WriteHeader(http.StatusOK)

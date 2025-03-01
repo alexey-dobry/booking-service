@@ -13,18 +13,19 @@ import (
 
 var schema = `
 		CREATE TABLE IF NOT EXISTS users (
-		id INT NOT NULL PRIMARY KEY,
+		id SERIAL PRIMARY KEY,
 		username TEXT NOT NULL,
 		password TEXT NOT NULL,
-		created_at TIMESTAMP,
-		updated_at TIMESTAMP
+		created_at TIMESTAMP NOT NULL,
+		updated_at TIMESTAMP NOT NULL
 	);
 
 	CREATE TABLE IF NOT EXISTS bookings (
-		id INT NOT NULL PRIMARY KEY,
+		id SERIAL PRIMARY KEY,
 		user_id INT NOT NULL,
-		start_time TIMESTAMP,
-		end_time TIMESTAMP,
+		start_time TIMESTAMP NOT NULL,
+		end_time TIMESTAMP NOT NULL,
+		text TEXT NOT NULL,
 
 		CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users (id)
 			ON DELETE CASCADE

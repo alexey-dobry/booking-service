@@ -1,0 +1,281 @@
+basePath: /api
+definitions:
+  models.Booking:
+    description: Booking is a struct which contains Id, UserId, StartTime and EndTime
+    properties:
+      end_time:
+        type: string
+      id:
+        type: integer
+      start_time:
+        type: string
+      user_id:
+        type: integer
+    required:
+    - end_time
+    - id
+    - start_time
+    - user_id
+    type: object
+  models.User:
+    description: User is a struct which contains Id, Username, Password, CreatedAt
+      and UpdatedAt
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      password:
+        type: string
+      updated_at:
+        type: string
+      username:
+        maxLength: 20
+        minLength: 6
+        type: string
+    required:
+    - created_at
+    - id
+    - password
+    - updated_at
+    - username
+    type: object
+info:
+  contact: {}
+  description: This project works with PostgresSQL. It has functionality to create
+    users and bookings. One user can have multiple bookings.
+  title: RESTful API test project for MireaCyberZone
+paths:
+  /booking:
+    post:
+      consumes:
+      - application/json
+      description: Creates function which adds new user data to database
+      parameters:
+      - description: integer >= 1
+        in: formData
+        name: UserId
+        required: true
+        type: integer
+      - description: format = YYYY-MM-DD HH:MM:SS
+        in: formData
+        name: StartTime
+        required: true
+        type: string
+      - description: format = YYYY-MM-DD HH:MM:SS
+        in: formData
+        name: EndTime
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: integer
+        "400":
+          description: Wrong ID
+          schema:
+            type: integer
+        "500":
+          description: Error scanning data from db response
+          schema:
+            type: integer
+      summary: Adds new booking entry
+  /booking/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Creates function which deletes data of booking specified by id
+        from database
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: integer
+        "400":
+          description: Wrong Id
+          schema:
+            type: integer
+      summary: Delete specified booking data
+    get:
+      consumes:
+      - application/json
+      description: Creates function which retrieves data of booking specified by id
+        from database
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: ok
+          schema:
+            $ref: '#/definitions/models.Booking'
+        "500":
+          description: Error scanning data from db response
+          schema:
+            type: integer
+      summary: Get booking data
+    put:
+      consumes:
+      - application/json
+      description: Creates function which updates data of booking specified by id
+        in database
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: integer
+        "400":
+          description: Wrong Id
+          schema:
+            type: integer
+        "500":
+          description: Error scanning data from db response
+          schema:
+            type: integer
+      summary: Updates booking data
+  /bookings:
+    get:
+      consumes:
+      - application/json
+      description: Creates function which retrieves data of all bookings from database
+      responses:
+        "200":
+          description: ok
+          schema:
+            items:
+              $ref: '#/definitions/models.Booking'
+            type: array
+        "500":
+          description: Error scanning data from db response
+          schema:
+            type: integer
+      summary: Get booking data
+  /user:
+    post:
+      consumes:
+      - application/json
+      description: Creates functon which adds new user data to database
+      parameters:
+      - description: 6 <= length <= 20
+        in: formData
+        name: Username
+        required: true
+        type: string
+      - description: length = 14
+        in: formData
+        name: password
+        required: true
+        type: string
+      - description: format = YYYY-MM-DD HH:MM:SS
+        in: formData
+        name: CreatedAt
+        required: true
+        type: string
+      - description: format = YYYY-MM-DD HH:MM:SS
+        in: formData
+        name: UpdatedAt
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: integer
+        "400":
+          description: Wrong ID
+          schema:
+            type: integer
+        "500":
+          description: Error scanning data from db response
+          schema:
+            type: integer
+      summary: Add new user to database
+  /user/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Creates function which deletes data of user specified by id from
+        database
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: integer
+        "400":
+          description: Wrong Id
+          schema:
+            type: integer
+      summary: Delete specified user data
+    get:
+      consumes:
+      - application/json
+      description: Creates function which retrieves data of user specified by id from
+        database
+      parameters:
+      - description: 'User ID '
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Wrong ID
+          schema:
+            type: integer
+        "500":
+          description: Error scanning data from db response
+          schema:
+            type: integer
+      summary: Get user data
+    put:
+      consumes:
+      - application/json
+      description: Creates function which updates data of user specified by id in
+        database
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: integer
+        "400":
+          description: Wrong ID
+          schema:
+            type: integer
+        "500":
+          description: Error scanning data from db response
+          schema:
+            type: integer
+      summary: Update user data
+swagger: "2.0"

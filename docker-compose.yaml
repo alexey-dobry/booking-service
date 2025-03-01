@@ -3,7 +3,7 @@ services:
     image: postgres:latest
     container_name: database
     ports:
-      - "${DATABASE_PORT}:5432"
+      - "${POSTGRES_PORT}:5432"
     networks:
       - app-network
     environment:

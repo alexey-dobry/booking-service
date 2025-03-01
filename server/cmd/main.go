@@ -9,11 +9,13 @@ import (
 	"github.com/alexey-dobry/booking-service/server/internal/logger"
 )
 
-// main starts the application
-//
-// It creates a database connection, creates a logger instance, creates an App instance
-// and runs it.
+// @BasePath /api
+
+// @title RESTful API test project for MireaCyberZone
+// @description This project works with PostgresSQL. It has functionality to create users and bookings. One user can have multiple bookings.
+
 func main() {
+
 	db, err := database.Init()
 	if err != nil {
 		log.Fatal("Failed to create database connection")

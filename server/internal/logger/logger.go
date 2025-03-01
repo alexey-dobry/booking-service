@@ -1,5 +1,6 @@
 package logger
 
+// fix this
 import (
 	"log"
 	"os"
@@ -16,9 +17,9 @@ type Logger struct {
 func NewLogger() *Logger {
 	var logger Logger
 	logger.ozzo = oz.NewLogger()
-	logger.logDirPath = "../../logs"
+	logger.logDirPath = "../logs"
 
-	err := os.Mkdir("../../logs", os.ModePerm)
+	err := os.Mkdir("../logs", os.ModePerm)
 	if err != nil && !os.IsExist(err) {
 		log.Fatalf("cannot create logger path: %s", err)
 	}
@@ -34,6 +35,8 @@ func NewLogger() *Logger {
 	logger.ozzo.Targets = append(logger.ozzo.Targets, targetFile)
 
 	logger.ozzo.Open()
+
+	log.Print("Logger is created")
 
 	return &logger
 }
