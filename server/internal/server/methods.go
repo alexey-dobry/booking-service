@@ -13,6 +13,7 @@ import (
 
 	"github.com/alexey-dobry/booking-service/server/internal/models"
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -85,21 +86,17 @@ func (s *Server) handleGetUser() http.HandlerFunc {
 
 		query := "SELECT id, username, password, created_at, updated_at FROM users WHERE id=$1;"
 
-		data, err := s.database.Query(context.Background(), query, id)
-		if !data.Next() {
-			http.Error(w, "Entry is not found", http.StatusBadRequest)
-			s.logger.Error("Entry is not found")
+		data := s.database.QueryRow(context.Background(), query, id)
+
+		err := data.Scan(&User.Id, &User.Username, &User.Password, &User.CreatedAt, &User.UpdatedAt)
+
+		if err == pgx.ErrNoRows {
+			http.Error(w, fmt.Sprintf("No entry with id {%d} was found in database", id), http.StatusBadRequest)
+			s.logger.Error(fmt.Sprintf("No entry with id {%d} was found in database", id))
 			return
 		} else if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to retrieve data from database; additional info: %s", err), http.StatusBadRequest)
-			s.logger.Error(fmt.Sprintf("Failed to retrieve data from database; additional info: %s", err))
-			return
-		}
-
-		err = data.Scan(&User.Id, &User.Username, &User.Password, &User.CreatedAt, &User.UpdatedAt)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to write data into object; additional info: %s", err), http.StatusInternalServerError)
-			s.logger.Error(fmt.Sprintf("Failed to write data into object; additional info: %s", err))
+			http.Error(w, fmt.Sprintf("Internal error; more info: %s", err), http.StatusInternalServerError)
+			s.logger.Error(fmt.Sprintf("Internal error; more info: %s", err))
 			return
 		}
 
@@ -256,22 +253,16 @@ func (s *Server) handleGetBooking() http.HandlerFunc {
 
 		query := "SELECT * FROM bookings WHERE id=$1"
 
-		data, err := s.database.Query(context.Background(), query, id)
+		data := s.database.QueryRow(context.Background(), query, id)
 
-		if !data.Next() {
-			http.Error(w, "Entry is not found", http.StatusBadRequest)
-			s.logger.Error("Entry is not found")
+		err := data.Scan(&Booking.Id, &Booking.UserId, &Booking.StartTime, &Booking.EndTime, &Booking.Text)
+		if err == pgx.ErrNoRows {
+			http.Error(w, fmt.Sprintf("No entry with id {%d} was found in database", id), http.StatusBadRequest)
+			s.logger.Error(fmt.Sprintf("No entry with id {%d} was found in database", id))
 			return
 		} else if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to retrieve data from database; additional info: %s", err), http.StatusInternalServerError)
-			s.logger.Error(fmt.Sprintf("Failed to retrieve data from database; additional info: %s", err))
-			return
-		}
-
-		err = data.Scan(&Booking.Id, &Booking.UserId, &Booking.StartTime, &Booking.EndTime, &Booking.Text)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to write data into object; additional info: %s", err), http.StatusInternalServerError)
-			s.logger.Error(fmt.Sprintf("Failed to write data into object; additional info: %s", err))
+			http.Error(w, fmt.Sprintf("Internal error; more info: %s", err), http.StatusInternalServerError)
+			s.logger.Error(fmt.Sprintf("Internal error; more info: %s", err))
 			return
 		}
 

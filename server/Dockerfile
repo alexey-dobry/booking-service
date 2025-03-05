@@ -13,7 +13,6 @@ COPY go.sum .
 RUN go mod download
 
 COPY . .
-COPY .env .env
 RUN go build -ldflags="-s -w" -o /app/server ./cmd
 
 FROM scratch
@@ -21,7 +20,6 @@ FROM scratch
 WORKDIR /app/server
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-COPY --from=builder /app/service/build/.env /app/.env
 COPY --from=builder /app/server /app/server
 
 CMD ["./server"]
