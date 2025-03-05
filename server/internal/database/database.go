@@ -11,6 +11,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// переделать
 var schema = `
 		CREATE TABLE IF NOT EXISTS users (
 		id SERIAL PRIMARY KEY,
@@ -39,7 +40,7 @@ func Init() (*pgx.Conn, error) {
 	var db *pgx.Conn
 	var err error
 
-	err = godotenv.Load("../.env")
+	err = godotenv.Load("../.env") //fix badly needed
 	if err != nil {
 		log.Fatalf("Failed to load environment variables; additional info: %s", err)
 	}
@@ -66,7 +67,7 @@ func Init() (*pgx.Conn, error) {
 	}
 
 	if err != nil {
-		log.Fatalf("Unable to connect; additional info: %s", err)
+		log.Fatalf("Unable to connect; additional info: %s; conn string:%s", err, connString)
 	} else {
 		log.Print("Successfully connected")
 	}
