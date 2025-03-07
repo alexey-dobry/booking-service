@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS bookings (
   start_time TIMESTAMP NOT NULL,
   end_time TIMESTAMP NOT NULL,
   text TEXT NOT NULL,
+  UNIQUE (user_id),
 
   CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users (id)
     ON DELETE CASCADE
