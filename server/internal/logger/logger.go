@@ -17,7 +17,7 @@ type Logger struct {
 func NewLogger() *Logger {
 	var logger Logger
 	logger.ozzo = oz.NewLogger()
-	logger.logDirPath = "../../logs"
+	logger.logDirPath = "../logs"
 
 	err := os.Mkdir("../logs", os.ModePerm)
 	if err != nil && !os.IsExist(err) {

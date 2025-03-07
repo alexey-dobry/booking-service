@@ -6,8 +6,10 @@
 *.toml
 !*toml.example
 
-*.sql
+!*.sql
 
 server.log
 
 README.md
+
+dbconf.example.yaml
