@@ -29,10 +29,11 @@ func NewLogger() *Logger {
 		log.Fatalf("cannot open logger file: %s", err)
 	}
 
+	targetConsole := oz.NewConsoleTarget()
 	targetFile := oz.NewFileTarget()
 	targetFile.FileName = logFile.Name()
 
-	logger.ozzo.Targets = append(logger.ozzo.Targets, targetFile)
+	logger.ozzo.Targets = append(logger.ozzo.Targets, targetFile, targetConsole)
 
 	logger.ozzo.Open()
 
