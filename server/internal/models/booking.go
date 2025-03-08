@@ -13,5 +13,5 @@ type Booking struct {
 	UserId    int       `json:"user_id"`
 	StartTime time.Time `json:"start_time" validate:"required"`
 	EndTime   time.Time `json:"end_time" validate:"required"`
-	Text      string    `json:"text" validate:"required,min=6,max=100,excludes=/\\#@$"`
+	Text      string    `json:"text" validate:"required,max=100,excludesall=/\\#@$"`
 }

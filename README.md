@@ -15,6 +15,10 @@
 1. Clone repository 
 2. In main directory:<br/>
    With Docker:
+    Setup .env file as in .example.env
+    Note: it is crucial to set POSTGRES_HOST value equal to "database"
+
+    Then:
     for Windows users:
       ```bash
       docker-compose build
@@ -27,6 +31,7 @@
       ```
    Without Docker:
     Set PostgreSQL in pgAdmin (see in env file (.env))
+    Then setup .env file as in .example.env
     and <br/>
     
     ```
@@ -43,29 +48,31 @@
  - **User (example)**:
 ```
 {
-  "id": 906,
+  "id": 294,
   "username": "Andrew Tate",
   "password": "$2a$14$kv/sGmTWIlNYocbZqd88GuRsrOtKrs9bBFMM7N7HRNZ.qPxF.b.GG", //bcrypt hash
-  "created_at": "2023-09-24 17:13:42",
-  "updated_at": "2023-09-27 11:10:23"
+  "created_at": "2025-01-15 16:15:00",
+  "updated_at": "2025-03-08 16:15:00"
 }
 ```
  - **Booking (example)**:
 ```
 {
   "id": 1021,
-  "user_id": 906,
+  "user_id": 294,
   "end_time": "2025-03-01 14:00:00",
   "start_time": "2025-03-01 20:42:00",
-  "comment": "GOOOOOOOOLang"
+  "comment": "I wanna play doka2"
 }
 ```
 
 ### Requests
-- /user/{id} [get]
-  <br/>Get User by id
 - /user [post]
   <br/>Create User from postForm: username, password
+- /user/{id} [get]
+  <br/>Get User by id 
+- /users [get]
+  <br/>Get all users ordered by id
 - /user/{id} [delete]
   <br/>Delete User and his bookings
 - /user/{id} [put]
@@ -73,10 +80,10 @@
 
 - /booking [post]
   <br/>Create User from postForm: user_id, start_time, end_time
-- /booking [get]
-  <br/>Get all bookings ordered by id
 - /booking/{id} [get]
   <br/>Get Booking by id
+- /booking [get]
+  <br/>Get all bookings ordered by id
 - /booking/{id} [put]
   <br/>Update (optional: text, start_time, end_time) Booking data by id (set new timestamp in update_at)
 - /booking/{id} [delete]
