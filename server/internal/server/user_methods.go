@@ -105,6 +105,50 @@ func (s *Server) handleGetUser() http.HandlerFunc {
 	}
 }
 
+// handleGetUsers
+//
+// @Summary Get booking data
+// @Description Creates function which retrieves data of all users from database
+// @Produces json
+//
+// @Success 200 {array} models.Booking "ok"
+// @Failure 500 {object} integer "Error scanning data from db response"
+// @Router /users [get]
+func (s *Server) handleGetUsers() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		var userList []models.User
+
+		query := "SELECT * FROM users"
+		data, err := s.database.Query(context.Background(), query)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to retrieve data from database; additional info: %s", err), http.StatusInternalServerError)
+			s.logger.Error(fmt.Sprintf("Failed to retrieve data from database; additional info: %s", err))
+			return
+		}
+
+		for data.Next() {
+			var User models.User
+			err = data.Scan(&User.Id, &User.Username, &User.Password, &User.CreatedAt, &User.UpdatedAt)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Failed to write data into object; additional info: %s", err), http.StatusInternalServerError)
+				s.logger.Error(fmt.Sprintf("Failed to write data into object; additional info: %s", err))
+				return
+			}
+			userList = append(userList, User)
+		}
+
+		if len(userList) == 0 {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(userList)
+		s.logger.Debug("Successfully retrieved bookings data")
+	}
+}
+
 // handleUpdateUser
 //
 // @Summary Update user data

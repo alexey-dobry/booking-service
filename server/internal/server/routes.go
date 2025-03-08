@@ -14,6 +14,7 @@ func (s *Server) initRoutes() {
 
 	s.router.HandleFunc("/user", s.handleAddUser()).Methods("POST")
 	s.router.HandleFunc("/user/{id}", s.handleGetUser()).Methods("GET")
+	s.router.HandleFunc("/users", s.handleGetUsers()).Methods("GET")
 	s.router.HandleFunc("/user/{id}", s.handleUpdateUser()).Methods("PUT")
 	s.router.HandleFunc("/user/{id}", s.handleDeleteUser()).Methods("DELETE")
 

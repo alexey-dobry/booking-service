@@ -126,10 +126,13 @@ func (s *Server) handleGetBookings() http.HandlerFunc {
 			bookingList = append(bookingList, Booking)
 		}
 
+		if len(bookingList) == 0 {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(bookingList)
 		s.logger.Debug("Successfully retrieved bookings data")
-		//сделать обработку возврата пустого результата
 	}
 }
 
