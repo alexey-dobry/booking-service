@@ -15,7 +15,7 @@ services:
       - database:/var/lib/postgresql/data
 
   server:
-    build: ./server
+    build: .
     container_name: booking-service-server
     ports:
       - "8000:8000"

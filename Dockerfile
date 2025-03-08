@@ -8,11 +8,11 @@ RUN apk update --no-cache && apk add --no-cache tzdata
 
 WORKDIR /app/service/build
 
-COPY go.mod .
-COPY go.sum .
+COPY ./server/go.mod .
+COPY ./server/go.sum .
 RUN go mod download
 
-COPY . .
+COPY ./server/ .
 RUN go build -ldflags="-s -w" -o /app/server ./cmd
 
 FROM scratch
