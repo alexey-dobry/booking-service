@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/alexey-dobry/booking-service/server/internal/models"
+	"github.com/alexey-dobry/booking-service/server/internal/validator"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5"
 )
@@ -36,6 +37,12 @@ func (s *Server) handleAddBooking() http.HandlerFunc {
 		if err := json.NewDecoder(r.Body).Decode(&newBooking); err != nil {
 			http.Error(w, fmt.Sprintf("Failed to decode json; additional info: %s", err), http.StatusBadRequest)
 			s.logger.Error(fmt.Sprintf("Failed to decode json; additional info: %s", err))
+			return
+		}
+
+		if err := validator.V.Struct(newBooking); err != nil {
+			http.Error(w, fmt.Sprintf("Incorrect input data: %s", err), http.StatusBadRequest)
+			s.logger.Error(fmt.Sprintf("Incorrect input data: %s", err))
 			return
 		}
 
@@ -99,6 +106,7 @@ func (s *Server) handleGetBooking() http.HandlerFunc {
 // @Produces json
 //
 // @Success 200 {array} models.Booking "ok"
+// @Success 200 {object} integer "no content"
 // @Failure 500 {object} integer "Error scanning data from db response"
 // @Router /bookings [get]
 func (s *Server) handleGetBookings() http.HandlerFunc {
@@ -175,6 +183,11 @@ func (s *Server) handleUpdateBooking() http.HandlerFunc {
 			builder.WriteString("',")
 		}
 		if newBookingData.Text != "" {
+			if err := validator.V.Var(newBookingData.Text, "required,min=6,max=100,excludes=/\\#@$"); err != nil {
+				http.Error(w, fmt.Sprintf("Incorrect input data: %s", err), http.StatusBadRequest)
+				s.logger.Error(fmt.Sprintf("Incorrect input data: %s", err))
+				return
+			}
 			builder.WriteString("text='")
 			builder.WriteString(newBookingData.Text)
 			builder.WriteString("',")
@@ -188,7 +201,7 @@ func (s *Server) handleUpdateBooking() http.HandlerFunc {
 			s.logger.Error(fmt.Sprintf("Failed to execute sql command; additional info:%s", err))
 			return
 		}
-		s.logger.Debug(query)
+
 		w.WriteHeader(http.StatusOK)
 		s.logger.Debug("Successefully updated booking data in database")
 	}

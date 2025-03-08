@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/alexey-dobry/booking-service/server/internal/models"
+	"github.com/alexey-dobry/booking-service/server/internal/validator"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -40,7 +41,13 @@ func (s *Server) handleAddUser() http.HandlerFunc {
 
 		if err := json.NewDecoder(r.Body).Decode(&newUser); err != nil {
 			http.Error(w, fmt.Sprintf("Failed to decode json: %s", err), http.StatusBadRequest)
-			s.logger.Error("Failed to decode json")
+			s.logger.Error(fmt.Sprintf("Failed to decode json: %s", err))
+			return
+		}
+
+		if err := validator.V.Struct(newUser); err != nil {
+			http.Error(w, fmt.Sprintf("Incorrect input data: %s", err), http.StatusBadRequest)
+			s.logger.Error(fmt.Sprintf("Incorrect input data: %s", err))
 			return
 		}
 
@@ -107,11 +114,12 @@ func (s *Server) handleGetUser() http.HandlerFunc {
 
 // handleGetUsers
 //
-// @Summary Get booking data
+// @Summary Get user data
 // @Description Creates function which retrieves data of all users from database
 // @Produces json
 //
-// @Success 200 {array} models.Booking "ok"
+// @Success 200 {array} models.User "ok"
+// @Success 200 {object} integer "no content"
 // @Failure 500 {object} integer "Error scanning data from db response"
 // @Router /users [get]
 func (s *Server) handleGetUsers() http.HandlerFunc {
@@ -183,11 +191,21 @@ func (s *Server) handleUpdateUser() http.HandlerFunc {
 		var builder strings.Builder
 
 		if newUserData.Password != "" {
+			if err := validator.V.Var(newUserData.Password, "required,excludes=\\/#@$"); err != nil {
+				http.Error(w, fmt.Sprintf("Incorrect input data: %s", err), http.StatusBadRequest)
+				s.logger.Error(fmt.Sprintf("Incorrect input data: %s", err))
+				return
+			}
 			builder.WriteString("password='")
 			builder.WriteString(string(password))
 			builder.WriteString("',")
 		}
 		if newUserData.Username != "" {
+			if err := validator.V.Var(newUserData.Username, "required,min=6,max=20,excludes=\\/#@$"); err != nil {
+				http.Error(w, fmt.Sprintf("Incorrect input data: %s", err), http.StatusBadRequest)
+				s.logger.Error(fmt.Sprintf("Incorrect input data: %s", err))
+				return
+			}
 			builder.WriteString("username='")
 			builder.WriteString(newUserData.Username)
 			builder.WriteString("',")
