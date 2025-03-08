@@ -9,8 +9,6 @@ import (
 	"github.com/alexey-dobry/booking-service/server/internal/logger"
 )
 
-// @BasePath /api
-
 // @title RESTful API test project for MireaCyberZone
 // @description This project works with PostgresSQL. It has functionality to create users and bookings. One user can have multiple bookings.
 

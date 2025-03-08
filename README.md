@@ -1,6 +1,10 @@
 # user-bookings-service
 > This is a RESTful API created using Golang, PostgreSQL and Docker
-
+### Documentation
+To see documentation run the application and visit:
+```
+http://localhost:8000/swagger/index.html
+```
 ### Requirements:
 #### With Docker:
  ![docker](https://badgen.net/static/docker/@latest/purple)<br/>
@@ -14,11 +18,11 @@
 ### Installing:
 1. Clone repository 
 2. In main directory:<br/>
-   With Docker:
-    Setup .env file as in .example.env
-    Note: it is crucial to set POSTGRES_HOST value equal to "database"
+   With Docker:<br/>
+    Setup .env file as in .example.env <br/>
+    Note: it is crucial to set POSTGRES_HOST value equal to "database"<br/>
 
-    Then:
+    Then:<br/>
     for Windows users:
       ```bash
       docker-compose build
@@ -29,9 +33,9 @@
       docker compose build
       docker compose up
       ```
-   Without Docker:
-    Set PostgreSQL in pgAdmin (see in env file (.env))
-    Then setup .env file as in .example.env
+   Without Docker:<br/>
+    Set PostgreSQL in pgAdmin (see in env file (.env))<br/>
+    Then setup .env file as in .example.env<br/>
     and <br/>
     
     ```

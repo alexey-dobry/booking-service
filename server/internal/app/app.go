@@ -9,12 +9,12 @@ import (
 )
 
 type App struct {
-	server server.Server
+	server *server.Server
 }
 
 func New(database *pgx.Conn, logger *logger.Logger) *App {
 	a := App{
-		server: *server.New(database, logger),
+		server: server.New(database, logger),
 	}
 	log.Print("App instance created")
 	return &a

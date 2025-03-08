@@ -41,13 +41,13 @@ func (s *Server) handleAddUser() http.HandlerFunc {
 
 		if err := json.NewDecoder(r.Body).Decode(&newUser); err != nil {
 			http.Error(w, fmt.Sprintf("Failed to decode json: %s", err), http.StatusBadRequest)
-			s.logger.Error(fmt.Sprintf("Failed to decode json: %s", err))
+			s.logger.Debug(fmt.Sprintf("Failed to decode json: %s", err))
 			return
 		}
 
 		if err := validator.V.Struct(newUser); err != nil {
 			http.Error(w, fmt.Sprintf("Incorrect input data: %s", err), http.StatusBadRequest)
-			s.logger.Error(fmt.Sprintf("Incorrect input data: %s", err))
+			s.logger.Debug(fmt.Sprintf("Incorrect input data: %s", err))
 			return
 		}
 
@@ -128,7 +128,7 @@ func (s *Server) handleGetUsers() http.HandlerFunc {
 
 		var userList []models.User
 
-		query := "SELECT * FROM users"
+		query := "SELECT id, username, password, create_time, update_time FROM users"
 		data, err := s.database.Query(context.Background(), query)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Failed to retrieve data from database; additional info: %s", err), http.StatusInternalServerError)
@@ -179,7 +179,7 @@ func (s *Server) handleUpdateUser() http.HandlerFunc {
 
 		if err := json.NewDecoder(r.Body).Decode(&newUserData); err != nil {
 			http.Error(w, fmt.Sprintf("Failed to decode json; additional info: %s", err), http.StatusBadRequest)
-			s.logger.Error(fmt.Sprintf("Failed to decode json; additional info: %s", err))
+			s.logger.Debug(fmt.Sprintf("Failed to decode json; additional info: %s", err))
 			return
 		}
 
@@ -193,7 +193,7 @@ func (s *Server) handleUpdateUser() http.HandlerFunc {
 		if newUserData.Password != "" {
 			if err := validator.V.Var(newUserData.Password, "required,excludes=\\/#@$"); err != nil {
 				http.Error(w, fmt.Sprintf("Incorrect input data: %s", err), http.StatusBadRequest)
-				s.logger.Error(fmt.Sprintf("Incorrect input data: %s", err))
+				s.logger.Debug(fmt.Sprintf("Incorrect input data: %s", err))
 				return
 			}
 			builder.WriteString("password='")
@@ -203,7 +203,7 @@ func (s *Server) handleUpdateUser() http.HandlerFunc {
 		if newUserData.Username != "" {
 			if err := validator.V.Var(newUserData.Username, "required,min=6,max=20,excludes=\\/#@$"); err != nil {
 				http.Error(w, fmt.Sprintf("Incorrect input data: %s", err), http.StatusBadRequest)
-				s.logger.Error(fmt.Sprintf("Incorrect input data: %s", err))
+				s.logger.Debug(fmt.Sprintf("Incorrect input data: %s", err))
 				return
 			}
 			builder.WriteString("username='")

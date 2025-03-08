@@ -8,10 +8,6 @@ import (
 )
 
 func (s *Server) initRoutes() {
-	if s.router == nil {
-		s.logger.Error("routes init error: router isn't initialized")
-	}
-
 	s.router.HandleFunc("/user", s.handleAddUser()).Methods("POST")
 	s.router.HandleFunc("/user/{id}", s.handleGetUser()).Methods("GET")
 	s.router.HandleFunc("/users", s.handleGetUsers()).Methods("GET")

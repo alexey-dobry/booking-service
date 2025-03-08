@@ -36,13 +36,19 @@ func (s *Server) handleAddBooking() http.HandlerFunc {
 
 		if err := json.NewDecoder(r.Body).Decode(&newBooking); err != nil {
 			http.Error(w, fmt.Sprintf("Failed to decode json; additional info: %s", err), http.StatusBadRequest)
-			s.logger.Error(fmt.Sprintf("Failed to decode json; additional info: %s", err))
+			s.logger.Debug(fmt.Sprintf("Failed to decode json; additional info: %s", err))
 			return
 		}
 
 		if err := validator.V.Struct(newBooking); err != nil {
 			http.Error(w, fmt.Sprintf("Incorrect input data: %s", err), http.StatusBadRequest)
-			s.logger.Error(fmt.Sprintf("Incorrect input data: %s", err))
+			s.logger.Debug(fmt.Sprintf("Incorrect input data: %s", err))
+			return
+		}
+
+		if err := newBooking.EndTime.After(newBooking.StartTime); err != true {
+			http.Error(w, "TimeError: end_time is before start_time", http.StatusBadRequest)
+			s.logger.Debug("TimeError: end_time is before start_time")
 			return
 		}
 
@@ -115,7 +121,7 @@ func (s *Server) handleGetBookings() http.HandlerFunc {
 
 		var bookingList []models.Booking
 
-		query := "SELECT * FROM bookings"
+		query := "SELECT id, user_id, start_time, end_time, text FROM bookings"
 		data, err := s.database.Query(context.Background(), query)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Failed to retrieve data from database; additional info: %s", err), http.StatusInternalServerError)
@@ -166,7 +172,7 @@ func (s *Server) handleUpdateBooking() http.HandlerFunc {
 
 		if err := json.NewDecoder(r.Body).Decode(&newBookingData); err != nil {
 			http.Error(w, fmt.Sprintf("Failed to decode json; additional info: %s", err), http.StatusBadRequest)
-			s.logger.Error(fmt.Sprintf("Failed to decode json; additional info: %s", err))
+			s.logger.Debug(fmt.Sprintf("Failed to decode json; additional info: %s", err))
 			return
 		}
 
@@ -185,7 +191,7 @@ func (s *Server) handleUpdateBooking() http.HandlerFunc {
 		if newBookingData.Text != "" {
 			if err := validator.V.Var(newBookingData.Text, "required,min=6,max=100,excludes=/\\#@$"); err != nil {
 				http.Error(w, fmt.Sprintf("Incorrect input data: %s", err), http.StatusBadRequest)
-				s.logger.Error(fmt.Sprintf("Incorrect input data: %s", err))
+				s.logger.Debug(fmt.Sprintf("Incorrect input data: %s", err))
 				return
 			}
 			builder.WriteString("text='")
