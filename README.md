@@ -51,8 +51,8 @@
   "id": 294,
   "username": "Andrew Tate",
   "password": "$2a$14$kv/sGmTWIlNYocbZqd88GuRsrOtKrs9bBFMM7N7HRNZ.qPxF.b.GG", //bcrypt hash
-  "created_at": "2025-01-15 16:15:00",
-  "updated_at": "2025-03-08 16:15:00"
+  "created_at": "2025-01-15T16:15:00Z",
+  "updated_at": "2025-03-08T16:15:00Z"
 }
 ```
  - **Booking (example)**:
@@ -60,8 +60,8 @@
 {
   "id": 1021,
   "user_id": 294,
-  "end_time": "2025-03-01 14:00:00",
-  "start_time": "2025-03-01 20:42:00",
+  "end_time": "2025-03-01T14:00:00Z",
+  "start_time": "2025-03-01T20:42:00Z",
   "comment": "I wanna play doka2"
 }
 ```
