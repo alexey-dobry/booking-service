@@ -15,6 +15,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+//сделать get users!
+
 // handleAddUser
 //
 // @Summary Add new user to database
@@ -142,9 +144,9 @@ func (s *Server) handleUpdateUser() http.HandlerFunc {
 			builder.WriteString("',")
 		}
 		if newUserData.Username != "" {
-			builder.WriteString("username=")
+			builder.WriteString("username='")
 			builder.WriteString(newUserData.Username)
-			builder.WriteString(",")
+			builder.WriteString("',")
 		}
 
 		query := fmt.Sprintf("UPDATE users SET %s updated_at=$1 WHERE id=$2", builder.String())

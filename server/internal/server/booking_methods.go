@@ -8,8 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"reflect"
-
 	"github.com/alexey-dobry/booking-service/server/internal/models"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5"
@@ -131,6 +129,7 @@ func (s *Server) handleGetBookings() http.HandlerFunc {
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(bookingList)
 		s.logger.Debug("Successfully retrieved bookings data")
+		//сделать обработку возврата пустого результата
 	}
 }
 
@@ -160,18 +159,22 @@ func (s *Server) handleUpdateBooking() http.HandlerFunc {
 			return
 		}
 
-		v := reflect.ValueOf(newBookingData)
-		t := reflect.TypeOf(newBookingData)
-
 		var builder strings.Builder
 
-		for i := 0; i < v.NumField(); i++ {
-			if v.Field(i).Interface() != "" && v.Field(i).Interface() != 0 && fmt.Sprint(v.Field(i).Interface()) != "0001-01-01 00:00:00 +0000 UTC" {
-				builder.WriteString(t.Field(i).Tag.Get("json"))
-				builder.WriteString("='")
-				builder.WriteString(fmt.Sprint(v.Field(i).Interface()))
-				builder.WriteString("',")
-			}
+		if newBookingData.EndTime.String() != "0001-01-01 00:00:00 +0000 UTC" {
+			builder.WriteString("end_time='")
+			builder.WriteString(newBookingData.EndTime.Format("2006-01-02 15:04:05.000"))
+			builder.WriteString("',")
+		}
+		if newBookingData.StartTime.String() != "0001-01-01 00:00:00 +0000 UTC" {
+			builder.WriteString("start_time='")
+			builder.WriteString(newBookingData.StartTime.Format("2006-01-02 15:04:05.000"))
+			builder.WriteString("',")
+		}
+		if newBookingData.Text != "" {
+			builder.WriteString("text='")
+			builder.WriteString(newBookingData.Text)
+			builder.WriteString("',")
 		}
 
 		query := fmt.Sprintf("UPDATE bookings SET %s WHERE id=$1", builder.String()[:len(builder.String())-1])
@@ -182,7 +185,7 @@ func (s *Server) handleUpdateBooking() http.HandlerFunc {
 			s.logger.Error(fmt.Sprintf("Failed to execute sql command; additional info:%s", err))
 			return
 		}
-
+		s.logger.Debug(query)
 		w.WriteHeader(http.StatusOK)
 		s.logger.Debug("Successefully updated booking data in database")
 	}

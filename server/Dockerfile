@@ -17,6 +17,10 @@ RUN go build -ldflags="-s -w" -o /app/server ./cmd
 
 FROM scratch
 
+WORKDIR /app/migrations
+
+COPY ./migrations .
+
 WORKDIR /app/server
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
