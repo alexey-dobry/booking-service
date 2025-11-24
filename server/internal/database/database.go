@@ -47,7 +47,7 @@ func Init() (*pgx.Conn, error) {
 		db_port = "5432"
 	}
 
-	connString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", db_user, db_password, db_host, db_port, db_name)
+	connString := fmt.Sprintf("postgresql://user:FV52Xn0soteXEL3GTFIzYsjgh4GKywcs@dpg-d4i127qdbo4c73bo27dg-a/database_31r3")
 
 	maxRetries := 10
 	delay := 3 * time.Second
